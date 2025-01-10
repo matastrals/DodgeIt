@@ -25,7 +25,6 @@
         "VSCMD_ARG_HOST_ARCH": "x64",
         "CONAN_PROFILE": "default"
       },
-      "CMAKE_CXX_FLAGS": "/std:c++20"
     }
   ],
 

@@ -6,10 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(build/conan_toolchain.cmake)
 
 find_package(GTest REQUIRED)
+find_package(SFML 2.6 REQUIRED COMPONENTS system window graphics)
 enable_testing()
 
-# Main executable
-add_executable(main_exe main.cpp)
-target_link_libraries(main_exe
-	PRIVATE GTest::GTest GTest::Main
-)
+add_subdirectory(./src)
+
