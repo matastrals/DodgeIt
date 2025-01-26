@@ -27,10 +27,11 @@ void Graphics()
         std::cout << "Ca marche po";
     }
     player.sprite.setTexture(texture);
-	constexpr std::array<std::array<int, 3>, 2> allSprite = { {
-            {65, 130, 195},
-			{80, 160, 240}
+	constexpr std::array<std::array<int, 4>, 2> allSprite = { {
+            {0, 65, 130, 195},
+			{0, 90, 180, 270}
         } };
+    std::vector<int> currentSprite = { 0, 0 };
 
     Transform windowSize;
     windowSize.position.x = 0; windowSize.position.y = 0;
@@ -46,6 +47,9 @@ void Graphics()
     sf::Time timerSpawnBullet = sf::seconds(1.f);
     sf::Clock timer;
 
+    sf::Time animationTime = sf::milliseconds(200.f);
+    sf::Clock resetAnimation;
+
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -56,22 +60,52 @@ void Graphics()
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
         {
             player.motion.direction_normalized = Vec2(0.f, -1.f);
+            currentSprite[1] = 3;
+            if (animationTime < resetAnimation.getElapsedTime())
+            {
+                if (currentSprite[0] == 3) { currentSprite[0] = 0; }
+                currentSprite[0] += 1;
+                resetAnimation.restart();
+            }
         }
         else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
         {
             player.motion.direction_normalized = Vec2(0.f, 1.f);
+            currentSprite[1] = 0;
+            if (animationTime < resetAnimation.getElapsedTime())
+            {
+                if (currentSprite[0] == 3) { currentSprite[0] = 0; }
+                currentSprite[0] += 1;
+                resetAnimation.restart();
+            }
         }
         else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
         {
             player.motion.direction_normalized = Vec2(-1.f, 0.f);
+            currentSprite[1] = 1;
+            if (animationTime < resetAnimation.getElapsedTime())
+            {
+                if (currentSprite[0] == 3) { currentSprite[0] = 0; }
+                currentSprite[0] += 1;
+                resetAnimation.restart();
+            }
         }
         else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
         {
             player.motion.direction_normalized = Vec2(1.f, 0.f);
+            currentSprite[1] = 2;
+            if (animationTime < resetAnimation.getElapsedTime())
+            {
+                if (currentSprite[0] == 3) { currentSprite[0] = 0; }
+                currentSprite[0] += 1;
+                resetAnimation.restart();
+            }
         }
         else
         {
             player.motion.direction_normalized = Vec2(0.f, 0.f);
+            currentSprite = { 0 , currentSprite[1] };
+            resetAnimation.restart();
         }
 
         if (timerSpawnBullet < timer.getElapsedTime())
@@ -85,7 +119,7 @@ void Graphics()
             allBulletEntity.push_back(bulletEntity);
         }
 
-    	if (!allBulletComponent.empty())
+        if (!allBulletComponent.empty())
         {
             for (int i = 0; i < allBulletEntity.size(); i++)
             {
@@ -95,16 +129,16 @@ void Graphics()
 
         for (int iterationAllBullet = 0; iterationAllBullet < allBulletEntity.size(); iterationAllBullet++)
         {
-             if (bullet_out_screen(allBulletComponent[iterationAllBullet], windowSize))
-             {
-                 allBulletComponent.erase(allBulletComponent.begin() + iterationAllBullet);
-                 allBulletEntity.erase(allBulletEntity.begin() + iterationAllBullet);
-             }
+            if (bullet_out_screen(allBulletComponent[iterationAllBullet], windowSize))
+            {
+                allBulletComponent.erase(allBulletComponent.begin() + iterationAllBullet);
+                allBulletEntity.erase(allBulletEntity.begin() + iterationAllBullet);
+            }
         }
-    	update_position(player.motion, player.transform, 0.16f);
+        update_position(player.motion, player.transform, 0.16f);
         window.clear(sf::Color::Black);
         player.sprite.setPosition(player.transform.position.x, player.transform.position.y);
-        player.sprite.setTextureRect(sf::IntRect(20, 5, 65, 80));
+        player.sprite.setTextureRect(sf::IntRect(allSprite[0][currentSprite[0]] + 20, allSprite[1][currentSprite[1]] + 5, 65, 80));
         window.draw(player.sprite);
 
     	if (!allBulletComponent.empty())
