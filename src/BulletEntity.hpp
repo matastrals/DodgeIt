@@ -8,3 +8,4 @@ struct Bullet {
 };
 
 Bullet create_bullet(Transform);
+bool bullet_out_screen(Bullet, Transform);

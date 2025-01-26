@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include "BulletEntity.hpp"
 #include <iostream>
+#include <array>
 
 struct Health
 {
@@ -21,12 +22,15 @@ void Graphics()
     player.motion.speed = 10.f;
 
     sf::Texture texture;
-    if (!texture.loadFromFile("assets/SimplePlayerSprite.jpg"))
+    if (!texture.loadFromFile("assets/SimplePlayerSprite.png"))
     {
         std::cout << "Ca marche po";
     }
     player.sprite.setTexture(texture);
-
+	constexpr std::array<std::array<int, 3>, 2> allSprite = { {
+            {65, 130, 195},
+			{80, 160, 240}
+        } };
 
     Transform windowSize;
     windowSize.position.x = 0; windowSize.position.y = 0;
@@ -69,6 +73,7 @@ void Graphics()
         {
             player.motion.direction_normalized = Vec2(0.f, 0.f);
         }
+
         if (timerSpawnBullet < timer.getElapsedTime())
         {
             timer.restart();
@@ -79,19 +84,30 @@ void Graphics()
             bulletEntity.setPosition(bulletComponent.transform.position.x, bulletComponent.transform.position.y);
             allBulletEntity.push_back(bulletEntity);
         }
-        if (!allBulletComponent.empty())
+
+    	if (!allBulletComponent.empty())
         {
             for (int i = 0; i < allBulletEntity.size(); i++)
             {
                 update_position(allBulletComponent[i].motion, allBulletComponent[i].transform, 0.16f);
             }
         }
-        update_position(player.motion, player.transform, 0.16f);
+
+        for (int iterationAllBullet = 0; iterationAllBullet < allBulletEntity.size(); iterationAllBullet++)
+        {
+             if (bullet_out_screen(allBulletComponent[iterationAllBullet], windowSize))
+             {
+                 allBulletComponent.erase(allBulletComponent.begin() + iterationAllBullet);
+                 allBulletEntity.erase(allBulletEntity.begin() + iterationAllBullet);
+             }
+        }
+    	update_position(player.motion, player.transform, 0.16f);
         window.clear(sf::Color::Black);
         player.sprite.setPosition(player.transform.position.x, player.transform.position.y);
-        player.sprite.setTextureRect(sf::IntRect(70, 10, 150, 220));
+        player.sprite.setTextureRect(sf::IntRect(20, 5, 65, 80));
         window.draw(player.sprite);
-        if (!allBulletComponent.empty())
+
+    	if (!allBulletComponent.empty())
         {
             for (int i = 0; i < allBulletEntity.size(); i++)
             {

@@ -7,15 +7,15 @@ Bullet create_bullet(Transform windowSize)
 	static std::random_device rd;
 	static std::mt19937 generator(rd());
 	static std::uniform_int_distribution<> whichSide (0, 3);
-	static std::uniform_int_distribution<> basicPositionX (0, windowSize.size.x);
-	static std::uniform_int_distribution<> basicPositionY (0, windowSize.size.y);
+	static std::uniform_int_distribution<> basicPositionX (5, windowSize.size.x - 5);
+	static std::uniform_int_distribution<> basicPositionY (5, windowSize.size.y - 5);
 
 	Bullet newBullet;
 
 	newBullet.transform.size = { 10.0f, 10.0f };
 	newBullet.motion.speed = 30.0f;
 
-	switch (whichSide(generator)) // Spawn where
+	switch (whichSide(generator)) // Where Bullet spawn
 	{
 		case 0: // Left
 			newBullet.transform.position.x = windowSize.get_min_bound().x - newBullet.transform.size.x;
@@ -38,6 +38,37 @@ Bullet create_bullet(Transform windowSize)
 			newBullet.motion.direction_normalized = Vec2(0, -1);
 			break;
 	}
-
 	return newBullet;
+}
+
+
+
+bool bullet_out_screen(Bullet bullet, Transform windowSize)
+{
+	if (bullet.motion.direction_normalized.x == 1.f)
+	{
+		if (bullet.transform.position.x > windowSize.get_max_bound().x + 10)
+		{
+			return true;
+		}
+	} else if (bullet.motion.direction_normalized.x == -1.f)
+	{
+		if (bullet.transform.position.x < windowSize.get_min_bound().x - 10)
+		{
+			return true;
+		}
+	} else if (bullet.motion.direction_normalized.y == 1.f)
+	{
+		if (bullet.transform.position.y > windowSize.get_max_bound().y + 10)
+		{
+			return true;
+		}
+	} else if (bullet.motion.direction_normalized.y == -1.f)
+	{
+		if (bullet.transform.position.y < windowSize.get_min_bound().y - 10)
+		{
+			return true;
+		}
+	}
+	return false;
 }
