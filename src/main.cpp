@@ -3,6 +3,8 @@
 #include <iostream>
 #include <array>
 
+#include <windows.h>
+
 struct Health
 {
     float maxHealth;
@@ -18,13 +20,21 @@ struct Player {
 void Graphics()
 {
     Player player;
+    player.health.CurrentHealth = 100;
     player.transform.position = Vec2(250.f, 250.f);
-    player.motion.speed = 10.f;
+    player.motion.speed = 100.f;
 
     sf::Texture texture;
     if (!texture.loadFromFile("assets/SimplePlayerSprite.png"))
     {
-        std::cout << "Ca marche po";
+        std::cout << "Ca marche po" << std::endl;
+        exit(1);
+    }
+    sf::Font font;
+    if (!font.loadFromFile("assets/DailyBubble.ttf"))
+    {
+        std::cout << "Pas de police..." << std::endl;
+        exit(2);
     }
     player.sprite.setTexture(texture);
 	constexpr std::array<std::array<int, 4>, 2> allSprite = { {
@@ -44,7 +54,7 @@ void Graphics()
 
     std::vector<Bullet> allBulletComponent;
     std::vector<sf::CircleShape> allBulletEntity;
-    sf::Time timerSpawnBullet = sf::seconds(1.f);
+    sf::Time timerSpawnBullet = sf::seconds(0.2f);
     sf::Clock timer;
 
     sf::Time animationTime = sf::milliseconds(200.f);
@@ -127,7 +137,7 @@ void Graphics()
             }
         }
 
-        for (int iterationAllBullet = 0; iterationAllBullet < allBulletEntity.size(); iterationAllBullet++)
+        for (int iterationAllBullet = allBulletEntity.size() - 1; iterationAllBullet >= 0; --iterationAllBullet)
         {
             if (bullet_out_screen(allBulletComponent[iterationAllBullet], windowSize))
             {
@@ -135,11 +145,34 @@ void Graphics()
                 allBulletEntity.erase(allBulletEntity.begin() + iterationAllBullet);
             }
         }
+
+        for (int iterationAllBullet = allBulletEntity.size() - 1; iterationAllBullet >= 0; --iterationAllBullet)
+        {
+            sf::FloatRect BulletBoxCollision = allBulletEntity[iterationAllBullet].getGlobalBounds();
+            sf::FloatRect playerBoxCollision = player.sprite.getGlobalBounds();
+            if (playerBoxCollision.intersects(BulletBoxCollision))
+            {
+                allBulletComponent.erase(allBulletComponent.begin() + iterationAllBullet);
+                allBulletEntity.erase(allBulletEntity.begin() + iterationAllBullet);
+                player.health.CurrentHealth -= 10.0f;
+            }
+        }
+        if (player.health.CurrentHealth <= 0)
+        {
+            break;
+        }
+        sf::Text text;
+        text.setFont(font);
+        text.setString("Health : " + std::to_string(static_cast<int> (player.health.CurrentHealth)));
+        text.setCharacterSize(30);  // Taille du texte
+        text.setFillColor(sf::Color::White);  // Couleur
+        text.setPosition(windowSize.get_max_bound().x - 200, windowSize.get_min_bound().y + 20);
         update_position(player.motion, player.transform, 0.16f);
         window.clear(sf::Color::Black);
         player.sprite.setPosition(player.transform.position.x, player.transform.position.y);
         player.sprite.setTextureRect(sf::IntRect(allSprite[0][currentSprite[0]] + 20, allSprite[1][currentSprite[1]] + 5, 65, 80));
         window.draw(player.sprite);
+
 
     	if (!allBulletComponent.empty())
         {
@@ -149,9 +182,21 @@ void Graphics()
                 window.draw(allBulletEntity[i]);
             }
         }
+        window.draw(text);
         window.display();
         
     }
+    window.clear(sf::Color::Black);
+    sf::Text endText;
+    endText.setFont(font);
+    endText.setString("Game Over");
+    endText.setCharacterSize(40);  // Taille du texte
+    endText.setFillColor(sf::Color::Red);  // Couleur
+    endText.setPosition(windowSize.get_max_bound().x/2 - 100, windowSize.get_max_bound().y/2 - 20);
+    window.draw(endText);
+    window.display();
+
+    Sleep(5000);
 }
 
 int main(int argc, char** argv) {

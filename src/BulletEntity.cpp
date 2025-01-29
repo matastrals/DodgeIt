@@ -13,7 +13,7 @@ Bullet create_bullet(Transform windowSize)
 	Bullet newBullet;
 
 	newBullet.transform.size = { 10.0f, 10.0f };
-	newBullet.motion.speed = 30.0f;
+	newBullet.motion.speed = 75.0f;
 
 	switch (whichSide(generator)) // Where Bullet spawn
 	{
