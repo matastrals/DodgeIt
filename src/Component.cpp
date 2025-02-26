@@ -1,4 +1,4 @@
-#include "MovementComponent.hpp"
+#include "Component.hpp"
 
 void update_position(const Motion &motion, Transform &transform, float deltatime)
 {

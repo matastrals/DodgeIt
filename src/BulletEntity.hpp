@@ -1,5 +1,5 @@
 #pragma once
-#include "MovementComponent.hpp"
+#include "Component.hpp"
 
 struct Bullet {
 	Transform transform;

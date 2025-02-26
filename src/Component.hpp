@@ -1,4 +1,7 @@
 #pragma once
+#include <SFML/Graphics.hpp>
+#include <array>
+
 
 struct Vec2
 {
@@ -27,5 +30,19 @@ struct Transform
         return { .x = position.x + size.x, .y = position.y + size.y };
     }
 };
+
+struct Health
+{
+    float maxHealth;
+    float currentHealth;
+};
+
+struct RenderSprite
+{
+    sf::Sprite sprite;
+    std::array<std::array<int, 4>, 2> allSprite;
+    std::vector<int> currentSprite;
+};
+
 
 void update_position(const Motion &motion, Transform &transform, float deltatime);
