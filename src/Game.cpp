@@ -8,6 +8,8 @@
 #include "system_manager.hpp"
 #include "Render.hpp"
 
+#include <windows.h>
+
 void Init()
 {
     auto& componentManager = ecs::ComponentManager::singleton();
@@ -31,12 +33,21 @@ void InitPlayerSystem()
 
 void InitBullet()
 {
-    auto bulletSystem = std::make_shared<CharacterSystem>();
+    auto bulletSystem = std::make_shared<BulletSystem>();
     ecs::Signature bulletSig;
     bulletSig.set(ecs::ComponentManager::singleton().get_component_type<Transform>(), true);
     bulletSig.set(ecs::ComponentManager::singleton().get_component_type<Motion>(), true);
     bulletSig.set(ecs::ComponentManager::singleton().get_component_type<sf::CircleShape>(), true);
     ecs::SystemManager::singleton().register_system("BulletSystem", bulletSystem, bulletSig);
+}
+
+void InitMovingSystem()
+{
+    auto movingSystem = std::make_shared<MovingSystem>();
+    ecs::Signature movingSystemSig;
+    movingSystemSig.set(ecs::ComponentManager::singleton().get_component_type<Transform>(), true);
+    movingSystemSig.set(ecs::ComponentManager::singleton().get_component_type<Motion>(), true);
+    ecs::SystemManager::singleton().register_system("MovingSystem", movingSystem, movingSystemSig);
 }
 
 std::shared_ptr<CharacterSystem> InitRenderSystem()
@@ -52,6 +63,7 @@ void Run()
 {
     Init();
 	InitPlayerSystem();
+    InitMovingSystem();
     auto renderSystem = InitRenderSystem();
     PlayerSystem playerSystem;
     ecs::Entity player = playerSystem.set_player();
@@ -72,8 +84,6 @@ void Run()
         sf::Style::Default);
     window.setFramerateLimit(60);
 
-    std::vector<Bullet> allBulletComponent;
-    std::vector<sf::CircleShape> allBulletEntity;
     sf::Time timerSpawnBullet = sf::seconds(0.2f);
     sf::Clock timer;
 
@@ -143,12 +153,8 @@ void Run()
         //if (timerSpawnBullet < timer.getElapsedTime())
         //{
         //    timer.restart();
-        //    Bullet bulletComponent = create_bullet(windowSize);
-        //    allBulletComponent.push_back(bulletComponent);
-        //    sf::CircleShape bulletEntity(5.0f);
-        //    bulletEntity.setFillColor(sf::Color::Red);
-        //    bulletEntity.setPosition(bulletComponent.transform.position.x, bulletComponent.transform.position.y);
-        //    allBulletEntity.push_back(bulletEntity);
+        //    BulletEntity bulletEntity;
+        //    bulletEntity.create_bullet(windowSize);
         //}
 
         //if (!allBulletComponent.empty())
@@ -192,16 +198,15 @@ void Run()
         text.setCharacterSize(30);  // Taille du texte
         text.setFillColor(sf::Color::White);  // Couleur
         text.setPosition(windowSize.get_max_bound().x - 200, windowSize.get_min_bound().y + 20);
-        update_position(playerMotion, playerTransform, 0.16f);
+        auto movingSystem = ecs::SystemManager::singleton().get_system<MovingSystem>("MovingSystem");
+        movingSystem->update_position(0.16f);
         window.clear(sf::Color::Black);
         renderSystem->renderSprite(window);
-        
 
 
 
         window.draw(text);
         window.display();
-
     }
     window.clear(sf::Color::Black);
     sf::Text endText;

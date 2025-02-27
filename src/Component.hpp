@@ -2,6 +2,8 @@
 #include <SFML/Graphics.hpp>
 #include <array>
 
+#include "system_manager.hpp"
+
 
 struct Vec2
 {
@@ -39,10 +41,14 @@ struct Health
 
 struct RenderSprite
 {
+    sf::Sprite  spriteSheet;
     sf::Sprite sprite;
     std::array<std::array<int, 4>, 2> allSprite;
     std::vector<int> currentSprite;
 };
 
+class MovingSystem : public ecs::System {
+public:
+    void update_position(float deltatime);
+};
 
-void update_position(const Motion &motion, Transform &transform, float deltatime);

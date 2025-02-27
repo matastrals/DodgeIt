@@ -28,20 +28,21 @@ ecs::Entity PlayerSystem::set_player() {
 	};
 	ecs::ComponentManager::singleton().add_component<Motion>(player, std::move(playerMotion));
 
-	sf::Texture texture;
-	if (!texture.loadFromFile("assets/SimplePlayerSprite.png"))
+	static std::shared_ptr<sf::Texture> texture = std::make_shared<sf::Texture>();  //Without this sprite is blank
+	if (!texture->loadFromFile("assets/SimplePlayerSprite.png"))
 	{
 		std::cout << "Texture pas charger" << std::endl;
 		exit(1);
 	}
 	sf::Sprite playerSprite;
-	playerSprite.setTexture(texture);
+	playerSprite.setTexture(*texture);
 	constexpr std::array<std::array<int, 4>, 2> allSprite = { {
 		{0, 65, 130, 195},
 		{0, 90, 180, 270}
 	} };
 	std::vector<int> currentSprite = { 0, 0 };
 	RenderSprite playerRenderSprite = {
+		.spriteSheet = playerSprite,
 		.sprite = playerSprite,
 		.allSprite = allSprite,
 		.currentSprite = currentSprite,
