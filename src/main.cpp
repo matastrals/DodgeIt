@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include "BulletEntity.hpp"
+#include "Collider.hpp"
 #include <iostream>
 #include <windows.h>
 #include "type.hpp"

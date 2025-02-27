@@ -11,4 +11,6 @@ void InitBullet();
 
 std::shared_ptr<CharacterSystem> InitRenderSystem();
 
+void InitMovingSystem();
+
 void Run();

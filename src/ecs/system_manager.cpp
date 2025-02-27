@@ -12,6 +12,7 @@ namespace ecs
 	{
 		for (const auto& [_, system] : mSystems)
 		{
+			std::cout << "Aller ca dégage" << std::endl;
 			system->mEntities.erase(entity);
 		}
 	}

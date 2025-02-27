@@ -7,6 +7,7 @@
 #include <iostream>
 #include "system_manager.hpp"
 #include "Render.hpp"
+#include "Collider.hpp"
 
 #include <windows.h>
 
@@ -31,14 +32,23 @@ void InitPlayerSystem()
     ecs::SystemManager::singleton().register_system("PlayerSystem", player, characterSig);
 }
 
-void InitBullet()
+void InitBulletRender()
 {
-    auto bulletSystem = std::make_shared<BulletSystem>();
+    auto bulletSystemRender = std::make_shared<BulletSystemRender>();
     ecs::Signature bulletSig;
     bulletSig.set(ecs::ComponentManager::singleton().get_component_type<Transform>(), true);
     bulletSig.set(ecs::ComponentManager::singleton().get_component_type<Motion>(), true);
     bulletSig.set(ecs::ComponentManager::singleton().get_component_type<sf::CircleShape>(), true);
-    ecs::SystemManager::singleton().register_system("BulletSystem", bulletSystem, bulletSig);
+    ecs::SystemManager::singleton().register_system("BulletSystemRender", bulletSystemRender, bulletSig);
+}
+
+void InitBulletCollide()
+{
+    auto bulletSystemCollide = std::make_shared<BulletSystemCollide>();
+    ecs::Signature bulletSig;
+    bulletSig.set(ecs::ComponentManager::singleton().get_component_type<Transform>(), true);
+    bulletSig.set(ecs::ComponentManager::singleton().get_component_type<sf::CircleShape>(), true);
+    ecs::SystemManager::singleton().register_system("BulletSystemCollide", bulletSystemCollide, bulletSig);
 }
 
 void InitMovingSystem()
@@ -63,10 +73,12 @@ void Run()
 {
     Init();
 	InitPlayerSystem();
+    InitBulletRender();
+    InitBulletCollide();
     InitMovingSystem();
     auto renderSystem = InitRenderSystem();
-    PlayerSystem playerSystem;
-    ecs::Entity player = playerSystem.set_player();
+    auto playerSystem = ecs::SystemManager::singleton().get_system<PlayerSystem>("PlayerSystem");
+    ecs::Entity player = playerSystem->set_player();
 
     sf::Font font;
     if (!font.loadFromFile("assets/DailyBubble.ttf"))
@@ -84,7 +96,7 @@ void Run()
         sf::Style::Default);
     window.setFramerateLimit(60);
 
-    sf::Time timerSpawnBullet = sf::seconds(0.2f);
+    sf::Time timerSpawnBullet = sf::seconds(1.0f);
     sf::Clock timer;
 
     sf::Time animationTime = sf::milliseconds(200.f);
@@ -150,48 +162,36 @@ void Run()
             resetAnimation.restart();
         }
 
-        //if (timerSpawnBullet < timer.getElapsedTime())
-        //{
-        //    timer.restart();
-        //    BulletEntity bulletEntity;
-        //    bulletEntity.create_bullet(windowSize);
-        //}
+        if (timerSpawnBullet < timer.getElapsedTime())
+        {
+            timer.restart();
+            BulletEntity bulletEntity;
+            bulletEntity.create_bullet(windowSize);
+        }
 
-        //if (!allBulletComponent.empty())
-        //{
-        //    for (int i = 0; i < allBulletEntity.size(); i++)
-        //    {
-        //        update_position(allBulletComponent[i].motion, allBulletComponent[i].transform, 0.16f);
-        //    }
-        //}
-
-        //for (int iterationAllBullet = allBulletEntity.size() - 1; iterationAllBullet >= 0; --iterationAllBullet)
-        //{
-        //    if (bullet_out_screen(allBulletComponent[iterationAllBullet], windowSize))
-        //    {
-        //        allBulletComponent.erase(allBulletComponent.begin() + iterationAllBullet);
-        //        allBulletEntity.erase(allBulletEntity.begin() + iterationAllBullet);
-        //    }
-        //}
+        auto bulletSystemCollide = ecs::SystemManager::singleton().get_system<BulletSystemCollide>("BulletSystemCollide");
+        sf::FloatRect playerCollider = ecs::ComponentManager::singleton().get_component<RenderSprite>(player).sprite.getGlobalBounds();
+        bulletSystemCollide->bulletCollide(playerCollider);
 
         Health& playerHealth = ecs::ComponentManager::singleton().get_component<Health>(player);
-        //sf::Sprite& playerSprite = ecs::ComponentManager::singleton().get_component<sf::Sprite>(player);
-        //for (int iterationAllBullet = allBulletEntity.size() - 1; iterationAllBullet >= 0; --iterationAllBullet)
-        //{
-        //    sf::FloatRect BulletBoxCollision = allBulletEntity[iterationAllBullet].getGlobalBounds();
-        //    sf::FloatRect playerBoxCollision = playerSprite.getGlobalBounds();
-        //    if (playerBoxCollision.intersects(BulletBoxCollision))
-        //    {
-        //        allBulletComponent.erase(allBulletComponent.begin() + iterationAllBullet);
-        //        allBulletEntity.erase(allBulletEntity.begin() + iterationAllBullet);
-        //        playerHealth.currentHealth -= 10.0f;
-        //    }
-        //}
+		
+ /*       for (auto bullet : bulletSystem)
+        {
+            sf::FloatRect BulletBoxCollision = allBulletEntity[iterationAllBullet].getGlobalBounds();
+            sf::FloatRect playerBoxCollision = playerSprite.getGlobalBounds();
+            if (playerBoxCollision.intersects(BulletBoxCollision))
+            {
+                allBulletComponent.erase(allBulletComponent.begin() + iterationAllBullet);
+                allBulletEntity.erase(allBulletEntity.begin() + iterationAllBullet);
+                playerHealth.currentHealth -= 10.0f;
+            }
+            std::cout << "oui";
+        }*/
+
         //if (playerHealth.currentHealth <= 0)
         //{
         //    break;
         //}
-        Transform& playerTransform = ecs::ComponentManager::singleton().get_component<Transform>(player);
         sf::Text text;
         text.setFont(font);
         text.setString("Health : " + std::to_string(static_cast<int> (playerHealth.currentHealth)));
@@ -202,6 +202,8 @@ void Run()
         movingSystem->update_position(0.16f);
         window.clear(sf::Color::Black);
         renderSystem->renderSprite(window);
+        auto bulletSystemRender = ecs::SystemManager::singleton().get_system<BulletSystemRender>("BulletSystemRender");
+        bulletSystemRender->renderBullet(window);
 
 
 

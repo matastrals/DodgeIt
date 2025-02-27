@@ -1,7 +1,10 @@
 #include "../ecs/entity_manager.hpp"
 
 #include <cassert>
+#include <iostream>
 #include <numeric>
+
+#include "system_manager.hpp"
 
 namespace ecs
 {
@@ -28,6 +31,7 @@ namespace ecs
 	{
 		assert(entity < MAX_ENTITIES && "Entity out of range.");
 
+		ecs::SystemManager::singleton().remove_entity(entity);
 		mSignatures[entity].reset();
 		mAvailableEntities.push(entity);
 		--mLivingEntityCount;

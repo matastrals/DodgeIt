@@ -47,7 +47,7 @@ void BulletEntity::create_bullet(Transform windowSize)
 
 	Motion bulletMotion = {
 		.direction_normalized = localNewBulletValue.motion.direction_normalized,
-		.speed = 75.0f
+		.speed = 5.0f
 	};
 
 	sf::CircleShape bulletCircleShape(5.0f);
@@ -59,12 +59,13 @@ void BulletEntity::create_bullet(Transform windowSize)
 	ecs::ComponentManager::singleton().add_component<sf::CircleShape>(newBullet, std::move(bulletCircleShape));
 
 	ecs::Signature signature;
-	ecs::EntityManager entityManager;
+	auto& entityManager = ecs::EntityManager::singleton();
 	signature.set(ecs::ComponentManager::singleton().get_component_type<Transform>(), true);
 	signature.set(ecs::ComponentManager::singleton().get_component_type<Motion>(), true);
 	signature.set(ecs::ComponentManager::singleton().get_component_type<sf::CircleShape>(), true);
 	entityManager.set_entity_signature(newBullet, signature);
 	ecs::SystemManager::singleton().update_entity_signature(newBullet, signature);
+
 }
 
 

@@ -19,7 +19,7 @@ public:
 	}
 };
 
-class BulletSystem : public ecs::System {
+class BulletSystemRender : public ecs::System {
 public:
 	void renderBullet(sf::RenderWindow& window) {
 		for (auto entity : mEntities)

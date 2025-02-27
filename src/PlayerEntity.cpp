@@ -50,7 +50,7 @@ ecs::Entity PlayerSystem::set_player() {
 	ecs::ComponentManager::singleton().add_component<RenderSprite>(player, std::move(playerRenderSprite));
 
 	ecs::Signature signature;
-	ecs::EntityManager entityManager;
+	auto& entityManager = ecs::EntityManager::singleton();
 	signature.set(ecs::ComponentManager::singleton().get_component_type<Transform>(), true);
 	signature.set(ecs::ComponentManager::singleton().get_component_type<Motion>(), true);
 	signature.set(ecs::ComponentManager::singleton().get_component_type<Health>(), true);

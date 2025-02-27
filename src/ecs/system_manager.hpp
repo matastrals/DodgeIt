@@ -10,6 +10,8 @@ namespace ecs
 {
 	class __declspec(dllexport) System
 	{
+	public:
+		virtual ~System() = default;
 	protected:
 		friend class SystemManager;
 		std::set<Entity> mEntities{};
@@ -30,10 +32,11 @@ namespace ecs
 
 		void register_system(std::string_view typeName, std::shared_ptr<System> system, Signature signature);
 
+
 		template<typename TSystem>
 		[[nodiscard]] std::shared_ptr<TSystem> get_system(const std::string& typeName)
 		{
-			return mSystems[typeName];
+			return std::dynamic_pointer_cast<TSystem>(mSystems[typeName]);
 		}
 
 		void remove_entity(Entity entity);
