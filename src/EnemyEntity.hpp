@@ -1,17 +1,19 @@
 #pragma once
 #include <SFML/System/Clock.hpp>
 
+#include "Component.hpp"
 #include "system_manager.hpp"
 
 class EnemyEntity
 {
 public:
-	void createEnemy();
+	void createEnemy(Transform);
 };
 
 class EnemySystem : public ecs::System
 {
 public:
 	void followPlayer(ecs::Entity);
-	bool animationEnemy(sf::Time, sf::Clock);
+	void animationEnemy();
+	void collidePlayer(ecs::Entity);
 };

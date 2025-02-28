@@ -27,7 +27,7 @@ public:
 		for (auto entity : bulletsToDestroy) {
 			entityManager.destroy_entity(entity);
 			ecs::SystemManager::singleton().remove_entity(entity);
-			removeHealth(player);
+			removeHealth(player, 10);
 		}
 	}
 
@@ -75,4 +75,5 @@ public:
 		}
 	}
 };
+
 

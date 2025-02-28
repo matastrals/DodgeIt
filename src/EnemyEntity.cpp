@@ -4,13 +4,43 @@
 #include "entity_manager.hpp"
 #include "component_manager.hpp"
 #include <iostream>
+#include <random>
 
+#include "PlayerEntity.hpp"
 #include "system_manager.hpp"
 
-void EnemyEntity::createEnemy() {
+void EnemyEntity::createEnemy(Transform windowSize) {
 	ecs::Entity enemy = ecs::EntityManager::singleton().create_entity();
+
+	static std::random_device rd;
+	static std::mt19937 generator(rd());
+	static std::uniform_int_distribution<> whichSide(0, 3);
+	static std::uniform_int_distribution<> basicPositionX(5, windowSize.size.x - 5);
+	static std::uniform_int_distribution<> basicPositionY(5, windowSize.size.y - 5);
+
+	Vec2 localNewEntityVec2;
+
+	switch (whichSide(generator)) 
+	{
+	case 0: // Left
+		localNewEntityVec2.x = windowSize.get_min_bound().x - 80 ;
+		localNewEntityVec2.y = basicPositionY(generator);
+		break;
+	case 1: // Right
+		localNewEntityVec2.x = windowSize.get_max_bound().x + 80;
+		localNewEntityVec2.y = basicPositionY(generator);
+		break;
+	case 2: // Up
+		localNewEntityVec2.x = basicPositionX(generator);
+		localNewEntityVec2.y = windowSize.get_min_bound().y - 80;
+		break;
+	case 3: // Down
+		localNewEntityVec2.x = basicPositionX(generator);
+		localNewEntityVec2.y = windowSize.get_max_bound().y + 80;
+		break;
+	}
 	Transform enemyTransform = {
-		.position = {250.f, 250.f},
+		.position = localNewEntityVec2,
 		.size = {0.f, 0.f}
 	};
 	ecs::ComponentManager::singleton().add_component<Transform>(enemy, std::move(enemyTransform));
@@ -74,8 +104,9 @@ void EnemyEntity::createEnemy() {
 	};
 
 	std::vector<int> currentSprite = { 0, 0 };
+
+	enemySprite.setTextureRect(animation1[0]);
 	RenderSprite enemyRenderSprite = {
-		.spriteSheet = enemySprite,
 		.sprite = enemySprite,
 		.allSprite = allSprite,
 		.currentSprite = currentSprite,
@@ -108,14 +139,14 @@ void EnemySystem::followPlayer(ecs::Entity player)
 	{
 		Transform& enemyTransform = ecs::ComponentManager::singleton().get_component<Transform>(entity);
 		Motion& enemyMotion = ecs::ComponentManager::singleton().get_component<Motion>(entity);
- 		if (playerTransform.position.x <= enemyTransform.position.x)
+ 		if (playerTransform.position.x + 20 <= enemyTransform.position.x)
 		{
 			enemyMotion.direction_normalized.x = -1;
 		} else
 		{
 			enemyMotion.direction_normalized.x = 1;
 		}
-		if (playerTransform.position.y <= enemyTransform.position.y)
+		if (playerTransform.position.y + 20 <= enemyTransform.position.y)
 		{
 			enemyMotion.direction_normalized.y = -1;
 		}
@@ -127,7 +158,7 @@ void EnemySystem::followPlayer(ecs::Entity player)
 }
 
 
-bool EnemySystem::animationEnemy(sf::Time animationEnemy, sf::Clock resetAnimationEnemy)
+void EnemySystem::animationEnemy()
 {
 	for (auto entity : mEntities)
 	{
@@ -153,5 +184,28 @@ bool EnemySystem::animationEnemy(sf::Time animationEnemy, sf::Clock resetAnimati
 			enemyRenderSprite.currentSprite[0] = 1;
 		}
 	}
-	return true;
 }
+
+void EnemySystem::collidePlayer(ecs::Entity player)
+{
+	sf::FloatRect playerCollide = ecs::ComponentManager::singleton().get_component<RenderSprite>(player).sprite.getGlobalBounds();
+	std::vector<ecs::Entity> enemyToDestroy;
+	auto entityManager = ecs::EntityManager::singleton();
+
+	for (auto entity : mEntities) {
+		auto enemyRenderSprite = ecs::ComponentManager::singleton().get_component<RenderSprite>(entity);
+		sf::FloatRect enemyBounds = enemyRenderSprite.sprite.getGlobalBounds();
+
+
+		if (playerCollide.intersects(enemyBounds))
+		{
+			enemyToDestroy.push_back(entity);
+		}
+	}
+	for (auto entity : enemyToDestroy) {
+		entityManager.destroy_entity(entity);
+		ecs::SystemManager::singleton().remove_entity(entity);
+		removeHealth(player, 25);
+	}
+}
+

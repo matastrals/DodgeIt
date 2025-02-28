@@ -77,7 +77,7 @@ std::shared_ptr<CharacterSystem> InitRenderSystem()
 void Run()
 {
     InitComponent();
-	InitBulletRender();
+    InitBulletRender();
     InitBulletCollide();
     InitEnemySystem();
     InitMovingSystem();
@@ -112,9 +112,6 @@ void Run()
 
     sf::Time animationTimePlayer = sf::milliseconds(200.f);
     sf::Clock resetAnimationPlayer;
-
-    sf::Time animationTimeEnemy = sf::milliseconds(200.f);
-    sf::Clock resetAnimationEnemy;
 
     while (window.isOpen()) {
         sf::Event event;
@@ -181,16 +178,19 @@ void Run()
 
         //------------------------------------------- GESTION ENEMY ---------------------------------------------------
 
-        auto enemySystem = ecs::SystemManager::singleton().get_system<EnemySystem>("EnemySystem");
-        enemySystem->followPlayer(player);
-        if (enemySystem->animationEnemy(animationTimeEnemy, resetAnimationEnemy)) { resetAnimationEnemy.restart(); }
-
         if (timerSpawnEnemy < clockSpawnEnemy.getElapsedTime())
         {
             clockSpawnEnemy.restart();
             EnemyEntity enemyEntity;
-            enemyEntity.createEnemy();
+            enemyEntity.createEnemy(windowSize);
         }
+
+        auto enemySystem = ecs::SystemManager::singleton().get_system<EnemySystem>("EnemySystem");
+        enemySystem->animationEnemy();
+        enemySystem->followPlayer(player);
+
+        enemySystem = ecs::SystemManager::singleton().get_system<EnemySystem>("EnemySystem");
+        enemySystem->collidePlayer(player);
 
         //------------------------------------------- GESTION BULLET ---------------------------------------------------
 
@@ -237,6 +237,9 @@ void Run()
         window.draw(text);
         window.display();
     }
+
+    sf::Time endTimer = sf::seconds(5.0f);
+    sf::Clock endClock;
     window.clear(sf::Color::Black);
     sf::Text endText;
     endText.setFont(font);
@@ -246,5 +249,8 @@ void Run()
     endText.setPosition(windowSize.get_max_bound().x / 2 - 100, windowSize.get_max_bound().y / 2 - 20);
     window.draw(endText);
     window.display();
-
+    while (endClock.getElapsedTime() < endTimer)
+    {
+        //On attend un peu que le joueur soit deg d'avoir perdu :)
+    }
 }

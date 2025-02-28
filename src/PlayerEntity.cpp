@@ -70,7 +70,6 @@ ecs::Entity setPlayer() {
 
 	std::vector<int> currentSprite = { 0, 0 };
 	RenderSprite playerRenderSprite = {
-		.spriteSheet = playerSprite,
 		.sprite = playerSprite,
 		.allSprite = allSprite,
 		.currentSprite = currentSprite,
@@ -94,10 +93,10 @@ ecs::Entity setPlayer() {
 }
 
 
-void removeHealth(ecs::Entity player)
+void removeHealth(ecs::Entity player, int value)
 {
 	Health& playerHealth = ecs::ComponentManager::singleton().get_component<Health>(player);
-	playerHealth.currentHealth -= 10.0f;
+	playerHealth.currentHealth -= value;
 }
 
 bool isPlayerHaveNoHealth(ecs::Entity player)
