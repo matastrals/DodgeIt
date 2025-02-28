@@ -78,7 +78,7 @@ void Run()
     InitMovingSystem();
     auto renderSystem = InitRenderSystem();
     auto playerSystem = ecs::SystemManager::singleton().get_system<PlayerSystem>("PlayerSystem");
-    ecs::Entity player = playerSystem->set_player();
+    ecs::Entity player = playerSystem->setPlayer();
 
     sf::Font font;
     if (!font.loadFromFile("assets/DailyBubble.ttf"))
@@ -166,32 +166,20 @@ void Run()
         {
             timer.restart();
             BulletEntity bulletEntity;
-            bulletEntity.create_bullet(windowSize);
+            bulletEntity.createBullet(windowSize);
         }
 
         auto bulletSystemCollide = ecs::SystemManager::singleton().get_system<BulletSystemCollide>("BulletSystemCollide");
-        sf::FloatRect playerCollider = ecs::ComponentManager::singleton().get_component<RenderSprite>(player).sprite.getGlobalBounds();
-        bulletSystemCollide->bulletCollide(playerCollider);
+        bulletSystemCollide->bulletCollide(player);
+        bulletSystemCollide->bulletOutScreen(windowSize);
+
+        playerSystem = ecs::SystemManager::singleton().get_system<PlayerSystem>("PlayerSystem");
+        if (playerSystem->isPlayerHaveNoHealth(player))
+        {
+            break;
+        }
 
         Health& playerHealth = ecs::ComponentManager::singleton().get_component<Health>(player);
-		
- /*       for (auto bullet : bulletSystem)
-        {
-            sf::FloatRect BulletBoxCollision = allBulletEntity[iterationAllBullet].getGlobalBounds();
-            sf::FloatRect playerBoxCollision = playerSprite.getGlobalBounds();
-            if (playerBoxCollision.intersects(BulletBoxCollision))
-            {
-                allBulletComponent.erase(allBulletComponent.begin() + iterationAllBullet);
-                allBulletEntity.erase(allBulletEntity.begin() + iterationAllBullet);
-                playerHealth.currentHealth -= 10.0f;
-            }
-            std::cout << "oui";
-        }*/
-
-        //if (playerHealth.currentHealth <= 0)
-        //{
-        //    break;
-        //}
         sf::Text text;
         text.setFont(font);
         text.setString("Health : " + std::to_string(static_cast<int> (playerHealth.currentHealth)));
@@ -199,7 +187,7 @@ void Run()
         text.setFillColor(sf::Color::White);  // Couleur
         text.setPosition(windowSize.get_max_bound().x - 200, windowSize.get_min_bound().y + 20);
         auto movingSystem = ecs::SystemManager::singleton().get_system<MovingSystem>("MovingSystem");
-        movingSystem->update_position(0.16f);
+        movingSystem->updatePosition(0.16f);
         window.clear(sf::Color::Black);
         renderSystem->renderSprite(window);
         auto bulletSystemRender = ecs::SystemManager::singleton().get_system<BulletSystemRender>("BulletSystemRender");

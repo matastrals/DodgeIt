@@ -8,7 +8,7 @@
 
 #include "system_manager.hpp"
 
-ecs::Entity PlayerSystem::set_player() {
+ecs::Entity PlayerSystem::setPlayer() {
 	ecs::Entity player = ecs::EntityManager::singleton().create_entity();
 	Transform playerTransform = {
 		.position = {250.f, 250.f},
@@ -58,4 +58,21 @@ ecs::Entity PlayerSystem::set_player() {
 	entityManager.set_entity_signature(player, signature);
 	ecs::SystemManager::singleton().update_entity_signature(player, signature);
 	return(player);
+}
+
+
+void PlayerSystem::removeHealth(ecs::Entity player)
+{
+	Health& playerHealth = ecs::ComponentManager::singleton().get_component<Health>(player);
+	playerHealth.currentHealth -= 10.0f;
+}
+
+bool PlayerSystem::isPlayerHaveNoHealth(ecs::Entity player)
+{
+	Health& playerHealth = ecs::ComponentManager::singleton().get_component<Health>(player);
+	if (playerHealth.currentHealth <= 0)
+	{
+		return true;
+	}
+	return false;
 }

@@ -49,6 +49,6 @@ struct RenderSprite
 
 class MovingSystem : public ecs::System {
 public:
-    void update_position(float deltatime);
+    void updatePosition(float deltatime);
 };
 

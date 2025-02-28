@@ -3,7 +3,7 @@
 #include "component_manager.hpp"
 
 
-void MovingSystem::update_position(float deltatime)
+void MovingSystem::updatePosition(float deltatime)
 {
     for (auto entity : mEntities)
     {

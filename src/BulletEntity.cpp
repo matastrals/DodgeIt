@@ -5,7 +5,7 @@
 #include "component_manager.hpp"
 #include "entity_manager.hpp"
 
-void BulletEntity::create_bullet(Transform windowSize)
+void BulletEntity::createBullet(Transform windowSize)
 {
 	static std::random_device rd;
 	static std::mt19937 generator(rd());
@@ -47,7 +47,7 @@ void BulletEntity::create_bullet(Transform windowSize)
 
 	Motion bulletMotion = {
 		.direction_normalized = localNewBulletValue.motion.direction_normalized,
-		.speed = 5.0f
+		.speed = 75.0f
 	};
 
 	sf::CircleShape bulletCircleShape(5.0f);
@@ -66,36 +66,4 @@ void BulletEntity::create_bullet(Transform windowSize)
 	entityManager.set_entity_signature(newBullet, signature);
 	ecs::SystemManager::singleton().update_entity_signature(newBullet, signature);
 
-}
-
-
-
-bool bullet_out_screen(Bullet bullet, Transform windowSize)
-{
-	if (bullet.motion.direction_normalized.x == 1.f)
-	{
-		if (bullet.transform.position.x > windowSize.get_max_bound().x + 10)
-		{
-			return true;
-		}
-	} else if (bullet.motion.direction_normalized.x == -1.f)
-	{
-		if (bullet.transform.position.x < windowSize.get_min_bound().x - 10)
-		{
-			return true;
-		}
-	} else if (bullet.motion.direction_normalized.y == 1.f)
-	{
-		if (bullet.transform.position.y > windowSize.get_max_bound().y + 10)
-		{
-			return true;
-		}
-	} else if (bullet.motion.direction_normalized.y == -1.f)
-	{
-		if (bullet.transform.position.y < windowSize.get_min_bound().y - 10)
-		{
-			return true;
-		}
-	}
-	return false;
 }

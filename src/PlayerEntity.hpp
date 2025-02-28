@@ -6,5 +6,8 @@
 class PlayerSystem : public ecs::System
 {
 public:
-    ecs::Entity set_player();
+    ecs::Entity setPlayer();
+    void removeHealth(ecs::Entity);
+    bool isPlayerHaveNoHealth(ecs::Entity);
 };
+
