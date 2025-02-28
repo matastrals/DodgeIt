@@ -3,11 +3,6 @@
 #include "entity_manager.hpp"
 #include "system_manager.hpp"
 
-class PlayerSystem : public ecs::System
-{
-public:
-    ecs::Entity setPlayer();
-    void removeHealth(ecs::Entity);
-    bool isPlayerHaveNoHealth(ecs::Entity);
-};
-
+ecs::Entity setPlayer();
+void removeHealth(ecs::Entity);
+bool isPlayerHaveNoHealth(ecs::Entity);

@@ -10,7 +10,6 @@ class BulletSystemCollide : public ecs::System {
 public: 
 	void bulletCollide(ecs::Entity player)
 	{
-		PlayerSystem playerSystem;
 		sf::FloatRect playerCollide = ecs::ComponentManager::singleton().get_component<RenderSprite>(player).sprite.getGlobalBounds();
 		std::vector<ecs::Entity> bulletsToDestroy;
 		auto entityManager = ecs::EntityManager::singleton();
@@ -28,7 +27,7 @@ public:
 		for (auto entity : bulletsToDestroy) {
 			entityManager.destroy_entity(entity);
 			ecs::SystemManager::singleton().remove_entity(entity);
-			playerSystem.removeHealth(player);
+			removeHealth(player);
 		}
 	}
 
@@ -70,7 +69,6 @@ public:
 				}
 			}
 		}
-		std::cout << "Number of bullet : " << mEntities.size() << std::endl;
 		for (auto entity : bulletsToDestroy) {
 			entityManager.destroy_entity(entity);
 			ecs::SystemManager::singleton().remove_entity(entity);

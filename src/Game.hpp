@@ -3,14 +3,14 @@
 #include "Render.hpp"
 #include "type.hpp"
 
-void Init();
-
-void InitPlayerSystem();
+void InitComponent();
 
 void InitBullet();
 
-std::shared_ptr<CharacterSystem> InitRenderSystem();
+void InitEnemySystem();
 
 void InitMovingSystem();
+
+std::shared_ptr<CharacterSystem> InitRenderSystem();
 
 void Run();

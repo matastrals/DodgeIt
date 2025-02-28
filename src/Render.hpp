@@ -12,8 +12,7 @@ public:
 			auto& renderSprite = ecs::ComponentManager::singleton().get_component<RenderSprite>(entity);
 			auto& transform = ecs::ComponentManager::singleton().get_component<Transform>(entity);
 			renderSprite.sprite.setPosition(transform.position.x, transform.position.y);
-			renderSprite.sprite.setTextureRect(sf::IntRect(renderSprite.allSprite[0][renderSprite.currentSprite[0]] + 20,
-				renderSprite.allSprite[1][renderSprite.currentSprite[1]] + 5, 65, 80));
+			renderSprite.sprite.setTextureRect(renderSprite.allSprite[renderSprite.currentSprite[1]][renderSprite.currentSprite[0]]);
 			window.draw(renderSprite.sprite);
 		}
 	}

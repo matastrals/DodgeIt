@@ -1,6 +1,5 @@
 #include "BulletEntity.hpp"
 #include <random>
-#include <iostream>
 
 #include "component_manager.hpp"
 #include "entity_manager.hpp"
@@ -47,7 +46,7 @@ void BulletEntity::createBullet(Transform windowSize)
 
 	Motion bulletMotion = {
 		.direction_normalized = localNewBulletValue.motion.direction_normalized,
-		.speed = 75.0f
+		.speed = 50.0f
 	};
 
 	sf::CircleShape bulletCircleShape(5.0f);

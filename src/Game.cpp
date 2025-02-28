@@ -8,10 +8,13 @@
 #include "system_manager.hpp"
 #include "Render.hpp"
 #include "Collider.hpp"
+#include "MapRender.hpp"
 
 #include <windows.h>
 
-void Init()
+#include "EnemyEntity.hpp"
+
+void InitComponent()
 {
     auto& componentManager = ecs::ComponentManager::singleton();
     componentManager.register_component<Transform>();
@@ -19,18 +22,9 @@ void Init()
     componentManager.register_component<Health>();
     componentManager.register_component<RenderSprite>();
     componentManager.register_component<sf::CircleShape>();
+    componentManager.register_component<Enemy>();
 }
 
-void InitPlayerSystem()
-{
-    auto player = std::make_shared<PlayerSystem>();
-    ecs::Signature characterSig;
-    characterSig.set(ecs::ComponentManager::singleton().get_component_type<Transform>(), true);
-    characterSig.set(ecs::ComponentManager::singleton().get_component_type<Motion>(), true);
-    characterSig.set(ecs::ComponentManager::singleton().get_component_type<Health>(), true);
-    characterSig.set(ecs::ComponentManager::singleton().get_component_type<RenderSprite>(), true);
-    ecs::SystemManager::singleton().register_system("PlayerSystem", player, characterSig);
-}
 
 void InitBulletRender()
 {
@@ -49,6 +43,17 @@ void InitBulletCollide()
     bulletSig.set(ecs::ComponentManager::singleton().get_component_type<Transform>(), true);
     bulletSig.set(ecs::ComponentManager::singleton().get_component_type<sf::CircleShape>(), true);
     ecs::SystemManager::singleton().register_system("BulletSystemCollide", bulletSystemCollide, bulletSig);
+}
+
+void InitEnemySystem()
+{
+    auto enemySystem = std::make_shared<EnemySystem>();
+    ecs::Signature enemySystemSig;
+    enemySystemSig.set(ecs::ComponentManager::singleton().get_component_type<Transform>(), true);
+    enemySystemSig.set(ecs::ComponentManager::singleton().get_component_type<Motion>(), true);
+    enemySystemSig.set(ecs::ComponentManager::singleton().get_component_type<RenderSprite>(), true);
+    enemySystemSig.set(ecs::ComponentManager::singleton().get_component_type<Enemy>(), true);
+    ecs::SystemManager::singleton().register_system("EnemySystem", enemySystem, enemySystemSig);
 }
 
 void InitMovingSystem()
@@ -71,14 +76,15 @@ std::shared_ptr<CharacterSystem> InitRenderSystem()
 
 void Run()
 {
-    Init();
-	InitPlayerSystem();
-    InitBulletRender();
+    InitComponent();
+	InitBulletRender();
     InitBulletCollide();
+    InitEnemySystem();
     InitMovingSystem();
+
     auto renderSystem = InitRenderSystem();
-    auto playerSystem = ecs::SystemManager::singleton().get_system<PlayerSystem>("PlayerSystem");
-    ecs::Entity player = playerSystem->setPlayer();
+    ecs::Entity player = setPlayer();
+
 
     sf::Font font;
     if (!font.loadFromFile("assets/DailyBubble.ttf"))
@@ -86,21 +92,29 @@ void Run()
         std::cout << "Pas de police..." << std::endl;
         exit(2);
     }
-
+    std::vector<std::vector<sf::Sprite>> tiles = setMap();
     Transform windowSize;
     windowSize.position.x = 0; windowSize.position.y = 0;
-    windowSize.size.x = 800;  windowSize.size.y = 600;
+    windowSize.size.x = 960;  windowSize.size.y = 640;
     sf::RenderWindow window(
         sf::VideoMode(windowSize.size.x, windowSize.size.y),
         "Le GOTY",
         sf::Style::Default);
     window.setFramerateLimit(60);
 
-    sf::Time timerSpawnBullet = sf::seconds(1.0f);
-    sf::Clock timer;
+    //------------------------------------------- GESTION TIMER ---------------------------------------------------
 
-    sf::Time animationTime = sf::milliseconds(200.f);
-    sf::Clock resetAnimation;
+    sf::Time timerSpawnBullet = sf::milliseconds(200.0f);
+    sf::Clock clockSpawnBullet;
+
+    sf::Time timerSpawnEnemy = sf::seconds(10.f);
+    sf::Clock clockSpawnEnemy;
+
+    sf::Time animationTimePlayer = sf::milliseconds(200.f);
+    sf::Clock resetAnimationPlayer;
+
+    sf::Time animationTimeEnemy = sf::milliseconds(200.f);
+    sf::Clock resetAnimationEnemy;
 
     while (window.isOpen()) {
         sf::Event event;
@@ -109,62 +123,80 @@ void Run()
             if (event.type == sf::Event::Closed)
                 window.close();
         }
+
+        //------------------------------------------- GESTION PLAYER ANIMATION/MOVEMENT ---------------------------------------------------
+
         Motion& playerMotion = ecs::ComponentManager::singleton().get_component<Motion>(player);
         RenderSprite& playerRenderSprite = ecs::ComponentManager::singleton().get_component<RenderSprite>(player);
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
         {
             playerMotion.direction_normalized = Vec2(0.f, -1.f);
             playerRenderSprite.currentSprite[1] = 3;
-            if (animationTime < resetAnimation.getElapsedTime())
+            if (animationTimePlayer < resetAnimationPlayer.getElapsedTime())
             {
                 if (playerRenderSprite.currentSprite[0] == 3) { playerRenderSprite.currentSprite[0] = 0; }
                 playerRenderSprite.currentSprite[0] += 1;
-                resetAnimation.restart();
+                resetAnimationPlayer.restart();
             }
         }
         else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
         {
             playerMotion.direction_normalized = Vec2(0.f, 1.f);
             playerRenderSprite.currentSprite[1] = 0;
-            if (animationTime < resetAnimation.getElapsedTime())
+            if (animationTimePlayer < resetAnimationPlayer.getElapsedTime())
             {
                 if (playerRenderSprite.currentSprite[0] == 3) { playerRenderSprite.currentSprite[0] = 0; }
                 playerRenderSprite.currentSprite[0] += 1;
-                resetAnimation.restart();
+                resetAnimationPlayer.restart();
             }
         }
         else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
         {
             playerMotion.direction_normalized = Vec2(-1.f, 0.f);
             playerRenderSprite.currentSprite[1] = 1;
-            if (animationTime < resetAnimation.getElapsedTime())
+            if (animationTimePlayer < resetAnimationPlayer.getElapsedTime())
             {
                 if (playerRenderSprite.currentSprite[0] == 3) { playerRenderSprite.currentSprite[0] = 0; }
                 playerRenderSprite.currentSprite[0] += 1;
-                resetAnimation.restart();
+                resetAnimationPlayer.restart();
             }
         }
         else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
         {
             playerMotion.direction_normalized = Vec2(1.f, 0.f);
             playerRenderSprite.currentSprite[1] = 2;
-            if (animationTime < resetAnimation.getElapsedTime())
+            if (animationTimePlayer < resetAnimationPlayer.getElapsedTime())
             {
                 if (playerRenderSprite.currentSprite[0] == 3) { playerRenderSprite.currentSprite[0] = 0; }
                 playerRenderSprite.currentSprite[0] += 1;
-                resetAnimation.restart();
+                resetAnimationPlayer.restart();
             }
         }
         else
         {
             playerMotion.direction_normalized = Vec2(0.f, 0.f);
             playerRenderSprite.currentSprite = { 0 , playerRenderSprite.currentSprite[1] };
-            resetAnimation.restart();
+            resetAnimationPlayer.restart();
         }
 
-        if (timerSpawnBullet < timer.getElapsedTime())
+        //------------------------------------------- GESTION ENEMY ---------------------------------------------------
+
+        auto enemySystem = ecs::SystemManager::singleton().get_system<EnemySystem>("EnemySystem");
+        enemySystem->followPlayer(player);
+        if (enemySystem->animationEnemy(animationTimeEnemy, resetAnimationEnemy)) { resetAnimationEnemy.restart(); }
+
+        if (timerSpawnEnemy < clockSpawnEnemy.getElapsedTime())
         {
-            timer.restart();
+            clockSpawnEnemy.restart();
+            EnemyEntity enemyEntity;
+            enemyEntity.createEnemy();
+        }
+
+        //------------------------------------------- GESTION BULLET ---------------------------------------------------
+
+        if (timerSpawnBullet < clockSpawnBullet.getElapsedTime())
+        {
+            clockSpawnBullet.restart();
             BulletEntity bulletEntity;
             bulletEntity.createBullet(windowSize);
         }
@@ -173,8 +205,9 @@ void Run()
         bulletSystemCollide->bulletCollide(player);
         bulletSystemCollide->bulletOutScreen(windowSize);
 
-        playerSystem = ecs::SystemManager::singleton().get_system<PlayerSystem>("PlayerSystem");
-        if (playerSystem->isPlayerHaveNoHealth(player))
+        //------------------------------------------- GESTION RENDER/END ---------------------------------------------------
+
+        if (isPlayerHaveNoHealth(player))
         {
             break;
         }
@@ -189,11 +222,17 @@ void Run()
         auto movingSystem = ecs::SystemManager::singleton().get_system<MovingSystem>("MovingSystem");
         movingSystem->updatePosition(0.16f);
         window.clear(sf::Color::Black);
+
+        for (size_t i = 0; i < 30; ++i) {
+            for (size_t j = 0; j < 20; ++j) {
+                sf::Sprite sprite = tiles[i][j];
+                sprite.setPosition(i * 32, j * 32);
+                window.draw(sprite);
+            }
+        }
         renderSystem->renderSprite(window);
         auto bulletSystemRender = ecs::SystemManager::singleton().get_system<BulletSystemRender>("BulletSystemRender");
         bulletSystemRender->renderBullet(window);
-
-
 
         window.draw(text);
         window.display();

@@ -3,6 +3,7 @@ add_library(DodgeIt STATIC
 	${CMAKE_CURRENT_SOURCE_DIR}/BulletEntity.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Game.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/PlayerEntity.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/EnemyEntity.cpp
  )
 
 add_subdirectory(ecs)

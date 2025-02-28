@@ -43,9 +43,11 @@ struct RenderSprite
 {
     sf::Sprite  spriteSheet;
     sf::Sprite sprite;
-    std::array<std::array<int, 4>, 2> allSprite;
+    std::vector<std::vector<sf::IntRect>> allSprite;
     std::vector<int> currentSprite;
 };
+
+struct Enemy {}; //Tag
 
 class MovingSystem : public ecs::System {
 public:
